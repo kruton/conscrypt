@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.security.KeyManagementException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.net.ssl.SSLServerSocketFactory;
 
 /**
@@ -77,8 +79,7 @@ final class OpenSSLServerSocketFactoryImpl extends SSLServerSocketFactory {
 
     @Override
     public ServerSocket createServerSocket() throws IOException {
-        return new ConscryptServerSocket((SSLParametersImpl) sslParameters.clone())
-                .setUseEngineSocket(useEngineSocket);
+        return new ConscryptServerSocket((SSLParametersImpl) sslParameters.clone()).setUseEngineSocket(useEngineSocket);
     }
 
     @Override
@@ -96,8 +97,7 @@ final class OpenSSLServerSocketFactoryImpl extends SSLServerSocketFactory {
     @Override
     public ServerSocket createServerSocket(int port, int backlog, InetAddress iAddress)
             throws IOException {
-        return new ConscryptServerSocket(
-                port, backlog, iAddress, (SSLParametersImpl) sslParameters.clone())
+        return new ConscryptServerSocket(port, backlog, iAddress, (SSLParametersImpl) sslParameters.clone())
                 .setUseEngineSocket(useEngineSocket);
     }
 }

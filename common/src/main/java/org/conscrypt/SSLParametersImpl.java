@@ -23,8 +23,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import javax.crypto.SecretKey;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -111,10 +110,9 @@ final class SSLParametersImpl implements Cloneable {
      * See {@link javax.net.ssl.SSLContext#init(KeyManager[],TrustManager[],
      * SecureRandom)} for more information
      */
-    SSLParametersImpl(KeyManager[] kms, TrustManager[] tms,
-            SecureRandom sr, ClientSessionContext clientSessionContext,
-            ServerSessionContext serverSessionContext, String[] protocols)
-            throws KeyManagementException {
+    SSLParametersImpl(KeyManager[] kms, TrustManager[] tms, SecureRandom sr,
+            ClientSessionContext clientSessionContext, ServerSessionContext serverSessionContext,
+            String[] protocols) throws KeyManagementException {
         this.serverSessionContext = serverSessionContext;
         this.clientSessionContext = clientSessionContext;
 
@@ -411,6 +409,14 @@ final class SSLParametersImpl implements Cloneable {
         } catch (SecurityException e) {
             return true;
         }
+    }
+
+    /**
+     * {@code SSLSocket} and {@code SSLEngine} implementations should implement this so that they
+     * may get callbacks to add TLS extensions during a handshake.
+     */
+    interface TLSCustomCallbacks {
+        TLSCustomExtensionData addCustomExtension(long extension_value, byte[] contents);
     }
 
     /**

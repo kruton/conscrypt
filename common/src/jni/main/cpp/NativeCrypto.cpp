@@ -5899,6 +5899,39 @@ static int cert_cb(SSL* ssl, CONSCRYPT_UNUSED void* arg) {
     return 1;
 }
 
+static int add_custom_ext_callback(SSL* ssl, unsigned extension_value, const uint8_t** out,
+                                   size_t* out_len, int* out_alert_value, void* add_arg) {
+    JNI_TRACE("ssl=%p add_custom_ext_callback ex=%ld", ssl, extension_value);
+    AppData* appData = toAppData(ssl);
+    JNIEnv* env = appData->env;
+    if (env == nullptr) {
+        ALOGE("AppData->env missing in add_custom_ext_callback");
+        JNI_TRACE("ssl=%p add_custom_ext_callback env error => 0", ssl);
+        return 0;
+    }
+
+    return 0;
+}
+
+static int parse_custom_ext_callback(SSL* ssl, unsigned extension_value, const uint8_t* contents,
+                                     size_t contents_len, int* out_alert_value, void* parse_arg) {
+    JNI_TRACE("ssl=%p parse_custom_ext_callback ex=%ld", ssl, extension_value);
+    AppData* appData = toAppData(ssl);
+    JNIEnv* env = appData->env;
+    if (env == nullptr) {
+        ALOGE("AppData->env missing in parse_custom_ext_callback");
+        JNI_TRACE("ssl=%p parse_custom_ext_callback env error => 0", ssl);
+        return 0;
+    }
+
+    jobject sslHandshakeCallbacks = appData->sslHandshakeCallbacks;
+    jclass cls = env->GetObjectClass(sslHandshakeCallbacks);
+    jmethodID methodID =
+            env->GetMethodID(cls, "parseCustomExtension", "(J[B)I");
+
+    return 0;
+}
+
 /**
  * Pre-Shared Key (PSK) client callback.
  */
@@ -6288,6 +6321,35 @@ static jlong NativeCrypto_SSL_CTX_set_timeout(JNIEnv* env, jclass, jlong ssl_ctx
     }
 
     return SSL_CTX_set_timeout(ssl_ctx, static_cast<uint32_t>(seconds));
+}
+
+static const int kClientCallbackType = 1;
+static const int kServerCallbackType = 2;
+
+static void NativeCrypto_SSL_CTX_add_client_custom_ext(JNIEnv* env, jclass, jlong ssl_ctx_address,
+                                                       jlong extension_id) {
+    SSL_CTX* ssl_ctx = to_SSL_CTX(env, ssl_ctx_address, true);
+    JNI_TRACE("ssl_ctx=%p SSL_CTX_add_client_custom_ext extension=%ld", ssl_ctx, extension_id);
+    if (ssl_ctx == nullptr) {
+        return;
+    }
+    SSL_CTX_add_client_custom_ext(
+            ssl_ctx, static_cast<unsigned>(extension_id), add_custom_ext_callback, nullptr,
+            reinterpret_cast<void*>(kClientCallbackType), parse_custom_ext_callback,
+            reinterpret_cast<void*>(kClientCallbackType));
+}
+
+static void NativeCrypto_SSL_CTX_add_server_custom_ext(JNIEnv* env, jclass, jlong ssl_ctx_address,
+                                                       jlong extension_id) {
+    SSL_CTX* ssl_ctx = to_SSL_CTX(env, ssl_ctx_address, true);
+    JNI_TRACE("ssl_ctx=%p SSL_CTX_add_server_custom_ext extension=%ld", ssl_ctx, extension_id);
+    if (ssl_ctx == nullptr) {
+        return;
+    }
+    SSL_CTX_add_server_custom_ext(
+            ssl_ctx, static_cast<unsigned>(extension_id), add_custom_ext_callback, nullptr,
+            reinterpret_cast<void*>(kServerCallbackType), parse_custom_ext_callback,
+            reinterpret_cast<void*>(kServerCallbackType));
 }
 
 /**
@@ -9465,6 +9527,8 @@ static JNINativeMethod sNativeCryptoMethods[] = {
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_CTX_free, "(J)V"),
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_CTX_set_session_id_context, "(J[B)V"),
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_CTX_set_timeout, "(JJ)J"),
+        CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_CTX_add_client_custom_ext, "(JJ)V"),
+        CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_CTX_add_server_custom_ext, "(JJ)V"),
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_new, "(J)J"),
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_enable_tls_channel_id, "(J)V"),
         CONSCRYPT_NATIVE_METHOD(NativeCrypto, SSL_get_tls_channel_id, "(J)[B"),

@@ -172,6 +172,11 @@ public final class ClientSessionContext extends AbstractSessionContext {
         return null;
     }
 
+    @Override
+    protected void addNativeTLSExtension(long tlsExtensionNumber) {
+        NativeCrypto.SSL_CTX_add_client_custom_ext(sslCtxNativePointer, tlsExtensionNumber);
+    }
+
     private static final class HostAndPort {
         final String host;
         final int port;

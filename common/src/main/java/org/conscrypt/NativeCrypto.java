@@ -1222,6 +1222,16 @@ public final class NativeCrypto {
             long sslNativePointer, boolean clientMode, byte[] alpnProtocols) throws IOException;
 
     /**
+     * Adds a custom TLS extension for clients.
+     */
+    static native void SSL_CTX_add_client_custom_ext(long sslCtx, long extensionValue);
+
+    /**
+     * Adds a custom TLS extension for servers.
+     */
+    static native void SSL_CTX_add_server_custom_ext(long sslCtx, long extensionValue);
+
+    /**
      * Variant of the {@link #SSL_do_handshake} used by {@link ConscryptEngine}. This differs
      * slightly from the raw BoringSSL API in that it returns the SSL error code from the
      * operation, rather than the return value from {@code SSL_do_handshake}. This is done in

@@ -112,6 +112,16 @@ public abstract class AbstractSessionContextTest<T extends AbstractSessionContex
         verify(mockCache).putSessionData(any(SSLSession.class), same(encodedBytes));
     }
 
+    @Test
+    public void testAddCustomClientExtension() throws Exception {
+        // TODO make sure this is sane.
+    }
+
+    @Test
+    public void testAddCustomServerExtension() throws Exception {
+        // TODO make sure this is sane.
+    }
+
     private void assertSessionContextContents(
             SslSessionWrapper[] contains, SslSessionWrapper[] exludes) {
         assertEquals(contains.length, size(context));

@@ -31,13 +31,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.*;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
+
 import libcore.java.security.TestKeyStore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -279,6 +276,88 @@ public class ConscryptEngineTest {
         assertEquals(ALPN_PROTOCOL, Conscrypt.Engines.getAlpnSelectedProtocol(serverEngine));
     }
 
+    public static class TestExtension implements TLSCustomExtensionCallbacks {
+        private final TLSCustomExtensionData addForServer;
+        private final TLSCustomExtensionData addForClient;
+        private SSLEngine returnedEngine;
+        private byte[] returnedData;
+
+        public TestExtension(
+                TLSCustomExtensionData addForClient, TLSCustomExtensionData addForServer) {
+            this.addForClient = addForClient;
+            this.addForServer = addForServer;
+        }
+
+        @Override
+        public TLSCustomExtensionData addClientCustomExtension(SSLSocket socket) {
+            throw new UnsupportedOperationException("not implemented for sockets");
+        }
+
+        @Override
+        public TLSCustomExtensionData addClientCustomExtension(SSLEngine engine) {
+            return addForClient;
+        }
+
+        @Override
+        public TLSCustomExtensionData addServerCustomExtension(SSLSocket socket) {
+            throw new UnsupportedOperationException("test not implemented for sockets");
+        }
+
+        @Override
+        public TLSCustomExtensionData addServerCustomExtension(SSLEngine engine) {
+            return addForServer;
+        }
+
+        @Override
+        public void parseCustomExtension(SSLSocket socket, byte[] data) {
+            throw new UnsupportedOperationException("test not implemented for sockets");
+        }
+
+        @Override
+        public void parseCustomExtension(SSLEngine engine, byte[] data) {
+            returnedEngine = engine;
+            returnedData = data;
+        }
+
+        public SSLEngine getReturnedEngine() {
+            return returnedEngine;
+        }
+
+        public byte[] getReturnedData() {
+            return returnedData;
+        }
+    }
+
+    @Test
+    public void handshakeWithCustomExtensionShouldSucceed() throws Exception {
+        SSLContext clientContext = initSslContext(newContext(), TestKeyStore.getClient());
+        SSLContext serverContext = initSslContext(newContext(), TestKeyStore.getServer());
+
+        TestExtension testClientExtension =
+                new TestExtension(new TLSCustomExtensionData(new byte[] {0x01, 0x01}), null);
+        TestExtension testServerExtension =
+                new TestExtension(null, new TLSCustomExtensionData(new byte[] {0x0A, 0x0A}));
+
+        Conscrypt.Contexts.addTLSCustomClientExtension(clientContext, 65500, testClientExtension);
+        Conscrypt.Contexts.addTLSCustomServerExtension(serverContext, 65500, testServerExtension);
+
+        setupEngines(TestKeyStore.getClient(), TestKeyStore.getServer(), false);
+        ClientAuth.NONE.apply(serverEngine);
+
+        doHandshake();
+        assertEquals(HandshakeStatus.NOT_HANDSHAKING, clientEngine.getHandshakeStatus());
+        assertEquals(HandshakeStatus.NOT_HANDSHAKING, serverEngine.getHandshakeStatus());
+
+        assertEquals(clientEngine, testClientExtension.getReturnedEngine());
+        assertEquals(serverEngine, testServerExtension.getReturnedEngine());
+    }
+
+    @Test
+    public void handshakeWithCustomExtension_ClientHasNoSupport_ServerSupports_ShouldSucceed()
+            throws Exception {
+        // TODO add actual test
+    }
+
     private void doMutualAuthHandshake(
             TestKeyStore clientKs, TestKeyStore serverKs, ClientAuth clientAuth) throws Exception {
         setupEngines(clientKs, serverKs, false);
@@ -298,6 +377,11 @@ public class ConscryptEngineTest {
         SSLContext clientContext = initSslContext(newContext(), clientKeyStore);
         SSLContext serverContext = initSslContext(newContext(), serverKeyStore);
 
+        setupEngines(clientContext, serverContext, useAlpn);
+    }
+
+    private void setupEngines(SSLContext clientContext, SSLContext serverContext, boolean useAlpn)
+            throws SSLException {
         clientEngine = initEngine(clientContext.createSSLEngine(), TEST_CIPHER, true);
         serverEngine = initEngine(serverContext.createSSLEngine(), TEST_CIPHER, false);
         setBufferAllocator(clientEngine, bufferType.allocator);

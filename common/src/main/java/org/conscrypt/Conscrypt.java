@@ -143,6 +143,36 @@ public final class Conscrypt {
             }
             ((ServerSessionContext) serverContext).setPersistentCache(cache);
         }
+
+        /**
+         * Adds a TLS custom extension client handler for the extension ID {@code extensionId} to
+         * the given {@code context}.
+         */
+        public static void addTLSCustomClientExtension(
+                SSLContext context, int extensionNumber, TLSCustomExtensionCallbacks callbacks) {
+            SSLSessionContext clientContext = context.getClientSessionContext();
+            if (!(clientContext instanceof ClientSessionContext)) {
+                throw new IllegalArgumentException(
+                        "Not a conscrypt client context: " + clientContext.getClass().getName());
+            }
+            ((ClientSessionContext) clientContext)
+                    .addTLSCustomExtension(extensionNumber, callbacks);
+        }
+
+        /**
+         * Adds a TLS custom extension client handler for the extension ID {@code extensionId} to
+         * the given {@code context}.
+         */
+        public static void addTLSCustomServerExtension(
+                SSLContext context, int extensionNumber, TLSCustomExtensionCallbacks callbacks) {
+            SSLSessionContext serverContext = context.getServerSessionContext();
+            if (!(serverContext instanceof ServerSessionContext)) {
+                throw new IllegalArgumentException(
+                        "Not a conscrypt server context: " + serverContext.getClass().getName());
+            }
+            ((ServerSessionContext) serverContext)
+                    .addTLSCustomExtension(extensionNumber, callbacks);
+        }
     }
 
     /**

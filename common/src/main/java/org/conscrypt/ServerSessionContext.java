@@ -86,4 +86,9 @@ public final class ServerSessionContext extends AbstractSessionContext {
     void onBeforeRemoveSession(SslSessionWrapper session) {
         // Do nothing.
     }
+
+    @Override
+    protected void addNativeTLSExtension(long tlsExtensionNumber) {
+        NativeCrypto.SSL_CTX_add_server_custom_ext(sslCtxNativePointer, tlsExtensionNumber);
+    }
 }

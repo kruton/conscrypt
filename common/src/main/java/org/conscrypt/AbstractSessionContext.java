@@ -41,6 +41,13 @@ abstract class AbstractSessionContext implements SSLSessionContext {
 
     final long sslCtxNativePointer = NativeCrypto.SSL_CTX_new();
 
+    /**
+     * Used when adding custom TLS extensions to sockets. This is set when the SSLParametersImpl
+     * is cloned and not changed after that.
+     */
+    private final Map<Long, TLSCustomExtensionCallbacks> tlsCustomExtensions =
+            new LinkedHashMap<>();
+
     @SuppressWarnings("serial")
     private final Map<ByteArray, SslSessionWrapper> sessions =
             new LinkedHashMap<ByteArray, SslSessionWrapper>() {
@@ -269,4 +276,28 @@ abstract class AbstractSessionContext implements SSLSessionContext {
             }
         }
     }
+
+    /**
+     * Adds a custom TLS extension to all SSL connections created from this factory.
+     * @param tlsExtensionNumber TLS extension number to be handled
+     * @param callbacks will be called to fill in data during handshake
+     * @throws IllegalArgumentException if {@code tlsExtensionNumber} is not in range of 0 to 65535
+     * inclusive or {@code callbacks} is {@code null}.
+     */
+    void addTLSCustomExtension(long tlsExtensionNumber, TLSCustomExtensionCallbacks callbacks) {
+        if (tlsExtensionNumber < 0 || tlsExtensionNumber > 65535) {
+            throw new IllegalArgumentException(
+                    "Extension number must be 0 <= extensionNumber <= 65535");
+        }
+        if (callbacks == null) {
+            throw new IllegalArgumentException("callbacks == null");
+        }
+        synchronized (tlsCustomExtensions) {
+            tlsCustomExtensions.put(tlsExtensionNumber, callbacks);
+
+            addNativeTLSExtension(tlsExtensionNumber);
+        }
+    }
+
+    protected abstract void addNativeTLSExtension(long tlsExtensionNumber);
 }
