@@ -358,6 +358,7 @@ model {
                                 "/GS",
                                 "/Gy",
                                 "/fp:precise",
+                                "-wd4065", // Switch statement with 'default' but no 'case' labels
                                 "-wd4514", // Unreferenced inline function removed
                                 "-wd4548", // Expression before comma has no effect
                                 "-wd4625", // Copy constructor was implicitly defined as deleted
