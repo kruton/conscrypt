@@ -227,6 +227,7 @@ jobs:
         shell: bash
         run: |
           ./gradlew :conscrypt-openjdk-uber:build -Dorg.conscrypt.openjdk.buildUberJar=true -Dmaven.repo.local="$M2_REPO"
+          ./gradlew :conscrypt-openjdk-uber:publish -Dorg.gradle.parallel=false -Dorg.conscrypt.openjdk.buildUberJar=true -Dmaven.repo.local="$M2_REPO"
 
       - name: Upload Maven respository
         uses: actions/upload-artifact@v1
