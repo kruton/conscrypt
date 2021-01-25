@@ -16,11 +16,11 @@
 
 package org.conscrypt.javax.net.ssl;
 
-import static org.conscrypt.TestUtils.osName;
-import static org.conscrypt.TestUtils.isOsx;
-import static org.conscrypt.TestUtils.isLinux;
-import static org.conscrypt.TestUtils.isWindows;
 import static org.conscrypt.TestUtils.UTF_8;
+import static org.conscrypt.TestUtils.isLinux;
+import static org.conscrypt.TestUtils.isOsx;
+import static org.conscrypt.TestUtils.isWindows;
+import static org.conscrypt.TestUtils.osName;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -19,11 +19,7 @@ package org.conscrypt.metrics;
 import static org.junit.Assert.assertEquals;
 
 import android.util.StatsEvent;
-import java.lang.reflect.Method;
 import junit.framework.TestCase;
-import org.conscrypt.InternalUtil;
-import org.conscrypt.metrics.ReflexiveStatsEvent;
-import org.conscrypt.metrics.ReflexiveStatsLog;
 
 public class MetricsTest extends TestCase {
     public static final int TLS_HANDSHAKE_REPORTED = 317;

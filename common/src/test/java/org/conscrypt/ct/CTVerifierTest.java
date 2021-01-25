@@ -173,4 +173,3 @@ public class CTVerifierTest {
                      result.getInvalidSCTs().get(0).sct.getOrigin());
     }
 }
-

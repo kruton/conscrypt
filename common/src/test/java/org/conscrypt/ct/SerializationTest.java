@@ -222,4 +222,3 @@ public class SerializationTest {
         assertEquals(Arrays.toString(expected), Arrays.toString(actual));
     }
 }
-

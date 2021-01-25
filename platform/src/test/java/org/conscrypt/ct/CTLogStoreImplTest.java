@@ -201,4 +201,3 @@ public class CTLogStoreImplTest extends TestCase {
         return folder;
     }
 }
-
